@@ -39,8 +39,7 @@ For each design, you can inspect:
 - Target and binder sequences  
 - Residue–residue contact pairs (3 Å and 4 Å)  
 - H-bond–like interactions  
-- Interface residue counts  
-- dSASA, clash counts, and other calculated metrics  
+- Interface residue counts   
 
 ---
 
