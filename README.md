@@ -64,7 +64,8 @@ You have two choices:
 - just use the Wep App via the link.  (https://bindcraftoutputanalyse-ednrdmyx97eon4hlfkjatb.streamlit.app/)
 
 
-###  Dependencies :
+If you want to install it locally:
+####  Dependencies 
 
 git clone https://github.com/mj72git/BindCraft_Output_Analyse.git
 cd BindCraft_Output_Analyse-main
