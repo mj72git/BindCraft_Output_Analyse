@@ -9,3 +9,5 @@ To utilize this analysis app, you first need to generate output from BindCraft. 
 
 ## References
 [1] Pacesa, M. (2024). BindCraft: one-shot design of functional protein binders. bioRxiv. [https://www.biorxiv.org/content/10.1101/2024.09.30.615802v1]
+
+[2] A-Yarow github page: https://github.com/A-Yarrow
