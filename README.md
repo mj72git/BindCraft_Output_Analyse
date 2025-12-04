@@ -1,7 +1,7 @@
 
 # BindCraft Analysis Web App
 
-A Streamlit-based web application for analyzing **BindCraft** output, exploring **interface metrics**, and visualizing **3D protein structures**.
+It is A Streamlit-based web application for analyzing **BindCraft** output, exploring **interface metrics**, and visualizing **3D protein structures**.
 
 This tool helps you interpret the results generated after running BindCraft, including the Accepted PDB files and the `final_design_stats.csv` file.
 
