@@ -5,6 +5,10 @@ It is A Streamlit-based web application for analyzing **BindCraft** output, expl
 
 This tool helps you interpret the results generated after running BindCraft, including the Accepted PDB files and the `final_design_stats.csv` file.
 
+For more information about the output parameters of BindCraft, this link is so useful: 
+https://yarrowmadrona.medium.com/denovo-protein-binder-design-using-bindcraft-part-ii-you-have-your-data-now-what-db9288e782b3
+
+
 ---
 
 ## Getting Started
