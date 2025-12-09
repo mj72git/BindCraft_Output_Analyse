@@ -228,8 +228,8 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 st.text(format_pairs(row['hbond_pairs']))
 else:
     st.info("Please upload PDB files and a CSV to start analysis.")
-    #blankk = st.header("")
-    st.markdown("###### Before starting, it is better to download and read the tutorial")
+    blankk = st.header("")
+    st.markdown("#### Before starting, it is better to download and read the tutorial")
     file_path = "help.txt"
     with open(file_path, "r") as ff:
         txt_content = ff.read()
