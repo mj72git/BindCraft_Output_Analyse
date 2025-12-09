@@ -6,6 +6,10 @@ import os
 import numpy as np
 import plotly.express as px
 
+#### MODIFIED #####
+if "analysis_done" not in st.session_state:
+    st.session_state.analysis_done = False
+####################
 try:
     import py3Dmol
     py3dmol_available = True
@@ -25,6 +29,7 @@ def format_pairs(pairs):
     except Exception:
         return str(pairs)
 
+# session_state defaults
 if 'df_out' not in st.session_state:
     st.session_state.df_out = None
 if 'df_rank' not in st.session_state:
@@ -35,91 +40,104 @@ if 'pdb_map' not in st.session_state:
 st.sidebar.header("Settings")
 target_chain = st.sidebar.text_input("Target Chain Letter", value="A")
 binder_chain = st.sidebar.text_input("Binder Chain Letter", value="B")
-add_target_res_offset = st.sidebar.number_input("Target Residue Offset", value=0)
-use_freesasa = st.sidebar.checkbox("Use freesasa for dSASA ")
+
+add_target_res_offset = st.sidebar.number_input("Target Residue Offset ", value=0)
+st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from Residue 1 but your initial target chain, starts from 24. you should select 23)")
+#use_freesasa = st.sidebar.checkbox("Use freesasa for dSASA ")
 blankk = st.sidebar.header("")
+
+
 mj = st.sidebar.header("App created by MJ Shadfar")
 
-st.subheader("Upload Files")
-pdb_files = st.file_uploader("Upload PDB files", type=["pdb", "cif"], accept_multiple_files=True)
-csv_file = st.file_uploader("Upload design metrics CSV", type="csv")
 
-if pdb_files and csv_file:
-    st.success("Files uploaded successfully.")
-    if st.button("Run Analysis"):
-        tmpdir = tempfile.mkdtemp()
-        freesasa_available = use_freesasa and (os.system("which freesasa > /dev/null") == 0)
+# ===== SHOW UPLOADS ONLY BEFORE ANALYSIS IS RUN =====
+if not st.session_state.analysis_done:
+    st.subheader("Upload Files")
+    pdb_files = st.file_uploader("Upload PDB files", type=["pdb", "cif"], accept_multiple_files=True)
+    csv_file = st.file_uploader("Upload design metrics CSV. (final_design_stats.csv)", type="csv")
 
-        csv_path = os.path.join(tmpdir, "metrics.csv")
-        with open(csv_path, "wb") as f:
-            f.write(csv_file.read())
-        df_metrics = pd.read_csv(csv_path)
+    if pdb_files and csv_file:
+        st.success("Files uploaded successfully.")
+        if st.button("Run Analysis"):
+            tmpdir = tempfile.mkdtemp()
+            #freesasa_available = use_freesasa and (os.system("which freesasa > /dev/null") == 0)
+            freesasa_available = (os.system("which freesasa > /dev/null") == 0)
+            csv_path = os.path.join(tmpdir, "metrics.csv")
+            with open(csv_path, "wb") as f:
+                f.write(csv_file.read())
+            df_metrics = pd.read_csv(csv_path)
 
-        results = []
-        progress = st.progress(0)
-        for i, pdb in enumerate(pdb_files):
-            pdb_path = os.path.join(tmpdir, pdb.name)
-            with open(pdb_path, "wb") as f:
-                f.write(pdb.read())
+            results = []
+            progress = st.progress(0)
+            for i, pdb in enumerate(pdb_files):
+                pdb_path = os.path.join(tmpdir, pdb.name)
+                with open(pdb_path, "wb") as f:
+                    f.write(pdb.read())
 
-            # Run analysis
-            r = analyze_design(pdb_path, target_chain=target_chain, binder_chain=binder_chain,
-                               add_target_res_offset=add_target_res_offset,
-                               freesasa_available=freesasa_available, tmpdir=tmpdir)
+                # Run analysis
+                r = analyze_design(pdb_path, target_chain=target_chain, binder_chain=binder_chain,
+                                   add_target_res_offset=add_target_res_offset,
+                                   freesasa_available=freesasa_available, tmpdir=tmpdir)
 
-            # ---------- Keep your original base logic ----------
-            base = os.path.splitext(os.path.basename(pdb_path))[0]
-            base = "_".join(base.split("_")[:-1])
-            if not base:
-                # fallback to full base if trimming removed everything
+                # ---------- Keep your original base logic ----------
                 base = os.path.splitext(os.path.basename(pdb_path))[0]
-            matched_row = {}
-            if 'Design' in df_metrics.columns:
-                m = df_metrics[df_metrics['Design'].astype(str).str.contains(base)]
-                if len(m) == 1:
-                    matched_row = m.iloc[0].to_dict()
-                else:
-                    m = df_metrics[df_metrics['Design'].astype(str) == base]
+                base = "_".join(base.split("_")[:-1])
+                if not base:
+                    # fallback to full base if trimming removed everything
+                    base = os.path.splitext(os.path.basename(pdb_path))[0]
+                matched_row = {}
+                if 'Design' in df_metrics.columns:
+                    m = df_metrics[df_metrics['Design'].astype(str).str.contains(base)]
                     if len(m) == 1:
                         matched_row = m.iloc[0].to_dict()
+                    else:
+                        m = df_metrics[df_metrics['Design'].astype(str) == base]
+                        if len(m) == 1:
+                            matched_row = m.iloc[0].to_dict()
 
-            # Save PDB content for 3D viewer using the same key as design_id (base)
-            try:
-                with open(pdb_path, "r") as fh:
-                    pdb_text = fh.read()
-            except UnicodeDecodeError:
-                with open(pdb_path, "r", encoding="latin-1") as fh:
-                    pdb_text = fh.read()
-            st.session_state.pdb_map[base] = pdb_text
+                # Save PDB content for 3D viewer using the same key as design_id (base)
+                try:
+                    with open(pdb_path, "r") as fh:
+                        pdb_text = fh.read()
+                except UnicodeDecodeError:
+                    with open(pdb_path, "r", encoding="latin-1") as fh:
+                        pdb_text = fh.read()
+                st.session_state.pdb_map[base] = pdb_text
 
-            record = {'design_id': base}
-            for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pAE','Average_i_pTM','Average_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
-                record[col] = matched_row.get(col, np.nan)
-            record.update({
-                'n_contacts_3A': r.get('n_contacts_3A'),
-                'n_contacts_4A': r.get('n_contacts_4A'),
-                'n_target_interface_residues': r.get('n_target_interface_residues'),
-                'n_binder_interface_residues': r.get('n_binder_interface_residues'),
-                'hbond_like_count': r.get('hbond_like_count'),
-                'clash_count': r.get('clash_count'),
-                'dsasa': r.get('dsasa'),
-                'target_seq': r.get('target_seq'),
-                'binder_seq': r.get('binder_seq'),
-                'pairs_3A': r.get('pairs_3A'),
-                'pairs_4A': r.get('pairs_4A'),
-                'hbond_pairs': r.get('hbond_pairs')
-            })
-            results.append(record)
-            progress.progress((i+1)/len(pdb_files))
+                record = {'design_id': base}
+                for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pAE','Average_i_pTM','Average_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
+                    record[col] = matched_row.get(col, np.nan)
+                record.update({
+                    'n_contacts_3A': r.get('n_contacts_3A'),
+                    'n_contacts_4A': r.get('n_contacts_4A'),
+                    'n_target_interface_residues': r.get('n_target_interface_residues'),
+                    'n_binder_interface_residues': r.get('n_binder_interface_residues'),
+                    'hbond_like_count': r.get('hbond_like_count'),
+                    'clash_count': r.get('clash_count'),
+                    'dsasa': r.get('dsasa'),
+                    'target_seq': r.get('target_seq'),
+                    'binder_seq': r.get('binder_seq'),
+                    'pairs_3A': r.get('pairs_3A'),
+                    'pairs_4A': r.get('pairs_4A'),
+                    'hbond_pairs': r.get('hbond_pairs')
+                })
+                results.append(record)
+                progress.progress((i+1)/len(pdb_files))
 
-        st.session_state.df_out = pd.DataFrame(results)
-        df_rank = st.session_state.df_out.copy()
-        for col in ['Average_i_pTM','dsasa','Average_pLDDT']:
-            if col not in df_rank.columns:
-                df_rank[col] = np.nan
-        st.session_state.df_rank = df_rank.sort_values(by=['Average_i_pTM','dsasa','Average_pLDDT'], ascending=[False, False, False])
+            st.session_state.df_out = pd.DataFrame(results)
+            df_rank = st.session_state.df_out.copy()
+            for col in ['Average_i_pTM','dsasa','Average_pLDDT']:
+                if col not in df_rank.columns:
+                    df_rank[col] = np.nan
+            st.session_state.df_rank = df_rank.sort_values(by=['Average_i_pTM','dsasa','Average_pLDDT'], ascending=[False, False, False])
+            # IMPORTANT: mark analysis as done
+            st.session_state.analysis_done = True
 
-if st.session_state.df_out is not None:
+            # rerun to show tabs immediately
+            st.rerun()
+
+# ===== AFTER ANALYSIS: SHOW TABS =====
+if st.session_state.analysis_done and st.session_state.df_out is not None:
     tab1, tab2, tab3 = st.tabs(["Summary", "Visualizations", "Details"])
 
     with tab1:
@@ -144,6 +162,7 @@ if st.session_state.df_out is not None:
             st.session_state.df_out = None
             st.session_state.df_rank = None
             st.session_state.pdb_map = {}
+            st.session_state.analysis_done = False  # reset flag
             st.rerun()
 
     with tab2:
@@ -159,16 +178,19 @@ if st.session_state.df_out is not None:
         if not py3dmol_available:
             st.error("py3Dmol is not installed. Please install it using 'pip install py3Dmol'.")
         else:
-            selected_design = st.selectbox("Select a design to view in 3D", options=df['design_id'].tolist())
+            # selectbox with a key so selection persists
+            selected_design = st.selectbox("Select a design to view in 3D", options=df['design_id'].tolist(), key="selected_design")
             pdb_content = st.session_state.pdb_map.get(selected_design)
 
             if pdb_content:
-                show_target = st.checkbox("Show Target Chain", value=True)
-                show_binder = st.checkbox("Show Binder Chain", value=True)
-                #highlight_interface = st.checkbox("Highlight Interface Residues", value=False)
+                show_target = st.checkbox("Show Target Chain", value=True, key="show_target")
+                show_binder = st.checkbox("Show Binder Chain", value=True, key="show_binder")
 
-                target_color = st.selectbox("Target Color", ["limegreen", "red", "orange", "magenta", "yellow", "cyan"], index=0)
-                binder_color = st.selectbox("Binder Color", ["deepskyblue", "red", "orange", "magenta", "yellow", "cyan"], index=0)
+                target_color = st.selectbox("Target Color", ["limegreen", "red", "orange", "magenta", "yellow", "cyan"], index=0, key="target_color")
+                binder_color = st.selectbox("Binder Color", ["deepskyblue", "red", "orange", "magenta", "yellow", "cyan"], index=0, key="binder_color")
+
+                # placeholder container (stable across reruns)
+                viewer_container = st.empty()
 
                 # Create base view
                 view = py3Dmol.view(width=900, height=500)
@@ -181,39 +203,16 @@ if st.session_state.df_out is not None:
                 if show_binder:
                     view.setStyle({'chain': binder_chain}, {'cartoon': {'color': binder_color}})
 
-                # Optionally highlight interface residues if available in df_out for selected_design
-                #if highlight_interface:
-                    # try to fetch interface residues from session_state.df_out
-                    #try:
-                     #   row = st.session_state.df_out[st.session_state.df_out['design_id'] == selected_design].iloc[0]
-                      #  pairs = row.get('pairs_3A') or row.get('pairs_4A') or []
-                        # pairs expected as list of ((chain,res),(chain,res)) or similar
-                        # build selector strings like "chain A and resi 45"
-                       # selectors = []
-                       # if isinstance(pairs, (list, tuple)):
-                           # for pair in pairs:
-                             #   for part in pair:
-                               #     try:
-                                   #     ch = part[0]
-                                   #     res = part[1]
-                                   #     selectors.append({'chain': ch, 'resi': str(res)})
-                                 #   except Exception:
-                                        # fallback: ignore malformed entries
-                                      #  pass
-                        # apply stickers (spheres) for interface residues
-                        #for sel in selectors:
-                          #  try:
-                          #      view.addSphere({'chain': sel['chain'], 'resi': int(sel['resi'])}, {'color': 'yellow', 'radius': 0.6})
-                          #  except Exception:
-                          #      pass
-                   # except Exception:
-                        #pass
-
                 view.zoomTo()
 
-                # Render viewer
+                ######MODIFIED######
+                html_content = view._make_html()
+                #viewer_container.components.html(html_content, height=500, width=900)
+                # Render viewer into placeholder (use .html to be stable)
+                #viewer_container.html(view._make_html(), height=500)
                 components.html(view._make_html(), height=500, width=900)
-
+                ####################
+                
     with tab3:
         st.subheader("Per-Design Details")
         for _, row in st.session_state.df_out.iterrows():
@@ -229,3 +228,14 @@ if st.session_state.df_out is not None:
                 st.text(format_pairs(row['hbond_pairs']))
 else:
     st.info("Please upload PDB files and a CSV to start analysis.")
+    #blankk = st.header("")
+    st.markdown("###### Before starting, it is better to download and read the toturial")
+    file_path = "help.txt"
+    with open(file_path, "r") as ff:
+        txt_content = ff.read()
+    st.download_button(
+    label="Download HELP File",
+    data=txt_content,
+    file_name="help.txt",  # You can keep the original name or change it
+    mime="text/plain")
+
