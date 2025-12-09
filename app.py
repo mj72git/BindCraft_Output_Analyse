@@ -42,7 +42,7 @@ target_chain = st.sidebar.text_input("Target Chain Letter", value="A")
 binder_chain = st.sidebar.text_input("Binder Chain Letter", value="B")
 
 add_target_res_offset = st.sidebar.number_input("Target Residue Offset ", value=0)
-st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from Residue 1 but your initial target chain, starts from 24. you should select 23)")
+st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from Residue 1 but your initial target chain, starts from 24. you should enter 23)")
 #use_freesasa = st.sidebar.checkbox("Use freesasa for dSASA ")
 blankk = st.sidebar.header("")
 
