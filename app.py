@@ -19,7 +19,7 @@ except ImportError:
 from bindcraft_analysis_pipeline import analyze_design
 
 st.set_page_config(page_title="BindCraft Analysis", layout="wide")
-st.title("BindCraft Output Analysis Web Application")
+st.title("BindCraft Output Analysis (BOA) Web Application")
 
 def format_pairs(pairs):
     if not pairs or pairs == 'nan':
@@ -48,7 +48,7 @@ blankk = st.sidebar.header("")
 
 
 mj = st.sidebar.header("App created by MJ Shadfar")
-
+st.sidebar.caption("BOA v1.1")
 
 # ===== SHOW UPLOADS ONLY BEFORE ANALYSIS IS RUN =====
 if not st.session_state.analysis_done:
