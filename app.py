@@ -6,7 +6,7 @@ import os
 import numpy as np
 import plotly.express as px
 
-#### MODIFIED #####
+##### MODIFIED #####
 if "analysis_done" not in st.session_state:
     st.session_state.analysis_done = False
 ####################
@@ -113,7 +113,7 @@ st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from 
 blankk = st.sidebar.header("")
 
 mj = st.sidebar.header("App created by MJ Shadfar")
-st.sidebar.caption("BOA v1.2")
+st.sidebar.caption("BOA v1.1")
 
 ############# FILE UPLOAD & ANALYSIS #############
 if not st.session_state.analysis_done:
