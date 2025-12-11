@@ -113,7 +113,7 @@ st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from 
 blankk = st.sidebar.header("")
 
 mj = st.sidebar.header("App created by MJ Shadfar")
-st.sidebar.caption("BOA v1.1")
+st.sidebar.caption("BOA v1.2")
 
 ############# FILE UPLOAD & ANALYSIS #############
 if not st.session_state.analysis_done:
