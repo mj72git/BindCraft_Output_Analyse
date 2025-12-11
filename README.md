@@ -1,5 +1,5 @@
 
-# BindCraft Analysis Web App
+# BindCraft Output Analysis Web App (BOA)
 
 This is a Streamlit-based web application for analyzing **BindCraft** output, exploring **interface metrics**, and visualizing **3D protein structures**.
 
