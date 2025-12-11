@@ -37,20 +37,85 @@ if 'df_rank' not in st.session_state:
 if 'pdb_map' not in st.session_state:
     st.session_state.pdb_map = {}
 
+############# HELPER FUNCTIONS #############
+
+def extract_contact_residues(pairs):
+    """Extract unique residue numbers from a list of contact pairs [( (A,res1),(B,res2) ), ... ]"""
+    if not pairs or pairs == "nan":
+        return []
+    residues = set()
+    try:
+        for (a_chain, a_res), (b_chain, b_res) in pairs:
+            residues.add((a_chain, int(a_res)))
+            residues.add((b_chain, int(b_res)))
+    except Exception:
+        return []
+    return list(residues)
+
+def parse_pairs(raw_pairs, target_chain='A', binder_chain='B'):
+    """
+    Parse BindCraft style contact pairs.
+    Example input:
+    [((75,'ARG'), (28,'PHE')), ((78,'THR'), (35,'TRP'))]
+    Returns:
+       [('A',75), ('B',28), ('A',78), ('B',35)]
+    """
+    import ast
+
+    if raw_pairs is None:
+        return []
+
+    # Convert string → Python list
+    if isinstance(raw_pairs, str):
+        try:
+            pairs = ast.literal_eval(raw_pairs)
+        except Exception:
+            return []
+    else:
+        pairs = raw_pairs
+
+    residues = set()
+
+    for left, right in pairs:
+        try:
+            # left = (75, 'ARG') → residue number = left[0]
+            res_target = int(left[0])
+            residues.add((target_chain, res_target))
+
+            # right = (28, 'PHE') → residue number = right[0]
+            res_binder = int(right[0])
+            residues.add((binder_chain, res_binder))
+
+        except Exception:
+            continue
+
+    return list(residues)
+
+
+
+#######################
+
+def highlight_residues(view, residue_list, sphere=False, cartoon_color='red', sphere_radius=1.2):
+    """Highlight residues on the 3D structure as cartoon only."""
+    for chain, resi in residue_list:
+        try:
+            view.addStyle({'chain': chain, 'resi': str(resi)}, {'cartoon': {'color': cartoon_color}})
+        except Exception:
+            continue
+
+############# SIDEBAR SETTINGS #############
 st.sidebar.header("Settings")
 target_chain = st.sidebar.text_input("Target Chain Letter", value="A")
 binder_chain = st.sidebar.text_input("Binder Chain Letter", value="B")
 
 add_target_res_offset = st.sidebar.number_input("Target Residue Offset ", value=0)
 st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from Residue 1 but your initial target chain, starts from 24. you should enter 23)")
-#use_freesasa = st.sidebar.checkbox("Use freesasa for dSASA ")
 blankk = st.sidebar.header("")
-
 
 mj = st.sidebar.header("App created by MJ Shadfar")
 st.sidebar.caption("BOA v1.1")
 
-# ===== SHOW UPLOADS ONLY BEFORE ANALYSIS IS RUN =====
+############# FILE UPLOAD & ANALYSIS #############
 if not st.session_state.analysis_done:
     st.subheader("Upload Files")
     pdb_files = st.file_uploader("Upload PDB files", type=["pdb", "cif"], accept_multiple_files=True)
@@ -60,7 +125,6 @@ if not st.session_state.analysis_done:
         st.success("Files uploaded successfully.")
         if st.button("Run Analysis"):
             tmpdir = tempfile.mkdtemp()
-            #freesasa_available = use_freesasa and (os.system("which freesasa > /dev/null") == 0)
             freesasa_available = (os.system("which freesasa > /dev/null") == 0)
             csv_path = os.path.join(tmpdir, "metrics.csv")
             with open(csv_path, "wb") as f:
@@ -74,17 +138,13 @@ if not st.session_state.analysis_done:
                 with open(pdb_path, "wb") as f:
                     f.write(pdb.read())
 
-                # Run analysis
                 r = analyze_design(pdb_path, target_chain=target_chain, binder_chain=binder_chain,
                                    add_target_res_offset=add_target_res_offset,
                                    freesasa_available=freesasa_available, tmpdir=tmpdir)
 
-                # ---------- Keep your original base logic ----------
                 base = os.path.splitext(os.path.basename(pdb_path))[0]
-                base = "_".join(base.split("_")[:-1])
-                if not base:
-                    # fallback to full base if trimming removed everything
-                    base = os.path.splitext(os.path.basename(pdb_path))[0]
+                base = "_".join(base.split("_")[:-1]) or os.path.splitext(os.path.basename(pdb_path))[0]
+
                 matched_row = {}
                 if 'Design' in df_metrics.columns:
                     m = df_metrics[df_metrics['Design'].astype(str).str.contains(base)]
@@ -95,7 +155,6 @@ if not st.session_state.analysis_done:
                         if len(m) == 1:
                             matched_row = m.iloc[0].to_dict()
 
-                # Save PDB content for 3D viewer using the same key as design_id (base)
                 try:
                     with open(pdb_path, "r") as fh:
                         pdb_text = fh.read()
@@ -130,13 +189,10 @@ if not st.session_state.analysis_done:
                 if col not in df_rank.columns:
                     df_rank[col] = np.nan
             st.session_state.df_rank = df_rank.sort_values(by=['Average_i_pTM','dsasa','Average_pLDDT'], ascending=[False, False, False])
-            # IMPORTANT: mark analysis as done
             st.session_state.analysis_done = True
-
-            # rerun to show tabs immediately
             st.rerun()
 
-# ===== AFTER ANALYSIS: SHOW TABS =====
+############# AFTER ANALYSIS #############
 if st.session_state.analysis_done and st.session_state.df_out is not None:
     tab1, tab2, tab3 = st.tabs(["Summary", "Visualizations", "Details"])
 
@@ -162,57 +218,124 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
             st.session_state.df_out = None
             st.session_state.df_rank = None
             st.session_state.pdb_map = {}
-            st.session_state.analysis_done = False  # reset flag
+            st.session_state.analysis_done = False
             st.rerun()
 
     with tab2:
         st.subheader("Visualizations")
+
+        # ensure df is defined
         df = st.session_state.df_out
 
-        # Bar chart for contacts vs design ID
-        fig_contacts = px.bar(df, x='design_id', y='n_contacts_4A', title='Number of Contacts (4Å) per Design', labels={'design_id':'Design ID','n_contacts_4A':'Contacts (4Å)'})
-        st.plotly_chart(fig_contacts, use_container_width=True)
-
-        # 3D viewer for selected design
-        st.subheader("3D Structure Viewer")
-        if not py3dmol_available:
-            st.error("py3Dmol is not installed. Please install it using 'pip install py3Dmol'.")
+        # -------------------------------
+        # BAR PLOT (4Å contacts)
+        # -------------------------------
+        if df is not None and df.shape[0] > 0:
+            fig_contacts = px.bar(
+                df,
+                x='design_id',
+                y='n_contacts_4A',
+                title='Number of Contacts (4Å)'
+            )
+            st.plotly_chart(fig_contacts, use_container_width=True)
         else:
-            # selectbox with a key so selection persists
-            selected_design = st.selectbox("Select a design to view in 3D", options=df['design_id'].tolist(), key="selected_design")
-            pdb_content = st.session_state.pdb_map.get(selected_design)
+            st.info("No data to plot. Please run analysis first.")
 
-            if pdb_content:
-                show_target = st.checkbox("Show Target Chain", value=True, key="show_target")
-                show_binder = st.checkbox("Show Binder Chain", value=True, key="show_binder")
+        # -------------------------------
+        # 3D STRUCTURE VIEWER
+        # -------------------------------
+        st.subheader("3D Structure Viewer")
 
-                target_color = st.selectbox("Target Color", ["limegreen", "red", "orange", "magenta", "yellow", "cyan"], index=0, key="target_color")
-                binder_color = st.selectbox("Binder Color", ["deepskyblue", "red", "orange", "magenta", "yellow", "cyan"], index=0, key="binder_color")
+        if not py3dmol_available:
+            st.error("py3Dmol is not installed.")
+        else:
+            if df is None or df.shape[0] == 0:
+                st.info("No designs available. Please run analysis first.")
+            else:
+                # Design selection
+                selected_design = st.selectbox("Select a design", df['design_id'].tolist())
+                row = df[df['design_id'] == selected_design].iloc[0]
 
-                # placeholder container (stable across reruns)
-                viewer_container = st.empty()
+                # Handle raw_pairs
+                raw_pairs = row.get('pairs_4A')
+                if isinstance(raw_pairs, str) and raw_pairs.strip().lower() in ["nan", "", "none"]:
+                    raw_pairs = None
 
-                # Create base view
+                # Parse contacts
+                contacts = parse_pairs(raw_pairs, target_chain=target_chain, binder_chain=binder_chain)
+
+                # Apply target offset and normalize chains
+                contacts_offset = []
+                t_chain = str(target_chain).strip().upper()
+                b_chain = str(binder_chain).strip().upper()
+
+                for c, r in contacts:
+                    try:
+                        chain_norm = str(c).strip().upper()
+                        resi = int(r)
+                        if chain_norm == t_chain:
+                            resi += int(add_target_res_offset)
+                        contacts_offset.append((chain_norm, resi))
+                    except:
+                        continue
+
+                # Prepare highlight lists for target and binder
+                highlight_target = [(c, r) for c, r in contacts_offset if c == t_chain]
+                highlight_binder = [(c, r) for c, r in contacts_offset if c == b_chain]
+
+                pdb_text = st.session_state.pdb_map[selected_design]
+
+                # Chain visibility + colors
+                show_target = st.checkbox("Show Target Chain", value=True, key=f"show_target_{selected_design}")
+                show_binder = st.checkbox("Show Binder Chain", value=True, key=f"show_binder_{selected_design}")
+                highlight_binding = st.checkbox("Highlight binding spot", value=True,
+                                                key=f"highlight_{selected_design}")
+
+                target_color = st.selectbox("Target Color", ["limegreen", "red", "orange", "magenta", "yellow", "cyan"],
+                                            index=0, key=f"tcolor_{selected_design}")
+                binder_color = st.selectbox("Binder Color",
+                                            ["deepskyblue", "red", "orange", "magenta", "yellow", "cyan"], index=0,
+                                            key=f"bcolor_{selected_design}")
+
+                # Create viewer
                 view = py3Dmol.view(width=900, height=500)
-                view.addModel(pdb_content, 'pdb')
+                view.addModel(pdb_text, 'pdb')
                 view.setBackgroundColor('0x303030')
-                view.setStyle({}, {})
 
+                # Cartoon visibility control
                 if show_target:
-                    view.setStyle({'chain': target_chain}, {'cartoon': {'color': target_color}})
+                    view.setStyle({'chain': t_chain}, {'cartoon': {'color': target_color}})
+                else:
+                    view.setStyle({'chain': t_chain}, {'cartoon': {'opacity': 0.0}})
+
                 if show_binder:
-                    view.setStyle({'chain': binder_chain}, {'cartoon': {'color': binder_color}})
+                    view.setStyle({'chain': b_chain}, {'cartoon': {'color': binder_color}})
+                else:
+                    view.setStyle({'chain': b_chain}, {'cartoon': {'opacity': 0.0}})
+
+                # Contact highlighting, only for visible chains and if checkbox is checked
+                if highlight_binding:
+                    if show_target:
+                        highlight_residues(
+                            view,
+                            highlight_target,
+                            sphere=True,
+                            cartoon_color='purple',
+                            sphere_radius=1.3
+                        )
+
+                    if show_binder:
+                        highlight_residues(
+                            view,
+                            highlight_binder,
+                            sphere=True,
+                            cartoon_color='purple',
+                            sphere_radius=1.3
+                        )
 
                 view.zoomTo()
-
-                ######MODIFIED######
-                html_content = view._make_html()
-                #viewer_container.components.html(html_content, height=500, width=900)
-                # Render viewer into placeholder (use .html to be stable)
-                #viewer_container.html(view._make_html(), height=500)
                 components.html(view._make_html(), height=500, width=900)
-                ####################
-                
+
     with tab3:
         st.subheader("Per-Design Details")
         for _, row in st.session_state.df_out.iterrows():
@@ -234,8 +357,8 @@ else:
     with open(file_path, "r") as ff:
         txt_content = ff.read()
     st.download_button(
-    label="Download HELP File",
-    data=txt_content,
-    file_name="help.txt",  # You can keep the original name or change it
-    mime="text/plain")
-
+        label="Download HELP File",
+        data=txt_content,
+        file_name="help.txt",
+        mime="text/plain"
+    )
