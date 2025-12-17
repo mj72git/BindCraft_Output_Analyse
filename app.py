@@ -25,7 +25,7 @@ def format_pairs(pairs):
     if not pairs or pairs == 'nan':
         return "None"
     try:
-        return " ".join([f"{a[0]} {a[1]} ↔ {b[0]} {b[1]}" for a, b in pairs])
+        return " ".join([f"{a[0]} {a[1]} ↔ {b[0]} {b[1]} \n" for a, b in pairs])
     except Exception:
         return str(pairs)
 
