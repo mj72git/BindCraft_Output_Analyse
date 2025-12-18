@@ -148,7 +148,7 @@ st.sidebar.download_button(
     mime="text/plain"
 )
 mj = st.sidebar.header("App created by MJ Shadfar")
-st.sidebar.caption("BOA v1.2.1")
+st.sidebar.caption("BOA v1.2")
 
 ############# FILE UPLOAD & ANALYSIS #############
 if not st.session_state.analysis_done:
