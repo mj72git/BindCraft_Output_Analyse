@@ -22,7 +22,7 @@ except ImportError:
 
 from bindcraft_analysis_pipeline import analyze_design
 
-#st.set_page_config(page_title="BindCraft Analysis", layout="wide")
+st.set_page_config(page_title="BindCraft Output Analysis", layout="wide")
 st.title("BindCraft Output Analysis (BOA) Web Application")
 
 def format_pairs(pairs):
@@ -148,7 +148,7 @@ st.sidebar.download_button(
     mime="text/plain"
 )
 mj = st.sidebar.header("App created by MJ Shadfar")
-st.sidebar.caption("BOA v1.2")
+st.sidebar.caption("BOA v1.2.1")
 
 ############# FILE UPLOAD & ANALYSIS #############
 if not st.session_state.analysis_done:
