@@ -16,16 +16,21 @@ try:
 except ImportError:
     py3dmol_available = False
 
+##########
+
+########
+
 from bindcraft_analysis_pipeline import analyze_design
 
-st.set_page_config(page_title="BindCraft Analysis", layout="wide")
+#st.set_page_config(page_title="BindCraft Analysis", layout="wide")
 st.title("BindCraft Output Analysis (BOA) Web Application")
 
 def format_pairs(pairs):
     if not pairs or pairs == 'nan':
         return "None"
     try:
-        return " ".join([f"{a[0]} {a[1]} ↔ {b[0]} {b[1]} \n" for a, b in pairs])
+        #return " ".join([f"{a[0]} {a[1]} ↔ {b[0]} {b[1]}" for a, b in pairs])
+        return " ".join([f"{a[0]} {a[1]}   ↔   {b[0]} {b[1]} \n" for a, b in pairs])
     except Exception:
         return str(pairs)
 
@@ -76,6 +81,7 @@ def parse_pairs(raw_pairs, target_chain='A', binder_chain='B'):
 
     residues = set()
 
+    #[((75,'ARG'), (28,'PHE')), ((78,'THR'), (35,'TRP'))]
     for left, right in pairs:
         try:
             # left = (75, 'ARG') → residue number = left[0]
@@ -91,6 +97,26 @@ def parse_pairs(raw_pairs, target_chain='A', binder_chain='B'):
 
     return list(residues)
 
+import re
+
+def extract_design_id(pdb_filename):
+
+    """
+    Works for:
+    - b_SLOG_l50_s95426_mpnn9_model2.pdb
+    - 5_b_SLOG_l50_s95426_mpnn9_model2.pdb
+    - 12_b_SLOG_l50_s95426_mpnn9_model1.pdb
+    """
+    name = os.path.splitext(os.path.basename(pdb_filename))[0]
+
+    # remove _modelX suffix
+    #name = re.sub(r'_model\d+$', '', name)
+    name = "_".join(name.split("_")[:-1])
+
+    # remove leading rank (digits + underscore)
+    name = re.sub(r'^\d+_', '', name)
+
+    return name
 
 
 #######################
@@ -112,8 +138,17 @@ add_target_res_offset = st.sidebar.number_input("Target Residue Offset ", value=
 st.sidebar.markdown("##### (e.g. your Output BindCraft target chain starts from Residue 1 but your initial target chain, starts from 24. you should enter 23)")
 blankk = st.sidebar.header("")
 
+file_path = "help.txt"
+with open(file_path, "r") as ff:
+    txt_content = ff.read()
+st.sidebar.download_button(
+    label="Download HELP",
+    data=txt_content,
+    file_name="help.txt",
+    mime="text/plain"
+)
 mj = st.sidebar.header("App created by MJ Shadfar")
-st.sidebar.caption("BOA v1.2")
+st.sidebar.caption("BOA v1.2.1")
 
 ############# FILE UPLOAD & ANALYSIS #############
 if not st.session_state.analysis_done:
@@ -142,11 +177,15 @@ if not st.session_state.analysis_done:
                                    add_target_res_offset=add_target_res_offset,
                                    freesasa_available=freesasa_available, tmpdir=tmpdir)
 
-                base = os.path.splitext(os.path.basename(pdb_path))[0]
-                base = "_".join(base.split("_")[:-1]) or os.path.splitext(os.path.basename(pdb_path))[0]
+                #base = os.path.splitext(os.path.basename(pdb_path))[0]  #omitt the .pdb
+                #base = "_".join(base.split("_")[:-1]) #or os.path.splitext(os.path.basename(pdb_path))[0]
+                base = extract_design_id(pdb.name)
 
+                #base = "_".join(base.split("_")[:-1]) or os.path.splitext(os.path.basename(pdb_path))[0]
                 matched_row = {}
+
                 if 'Design' in df_metrics.columns:
+
                     m = df_metrics[df_metrics['Design'].astype(str).str.contains(base)]
                     if len(m) == 1:
                         matched_row = m.iloc[0].to_dict()
@@ -167,6 +206,7 @@ if not st.session_state.analysis_done:
                 for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pAE','Average_i_pTM','Average_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
                     record[col] = matched_row.get(col, np.nan)
                 record.update({
+
                     'n_contacts_3A': r.get('n_contacts_3A'),
                     'n_contacts_4A': r.get('n_contacts_4A'),
                     'n_target_interface_residues': r.get('n_target_interface_residues'),
@@ -176,6 +216,7 @@ if not st.session_state.analysis_done:
                     'dsasa': r.get('dsasa'),
                     'target_seq': r.get('target_seq'),
                     'binder_seq': r.get('binder_seq'),
+
                     'pairs_3A': r.get('pairs_3A'),
                     'pairs_4A': r.get('pairs_4A'),
                     'hbond_pairs': r.get('hbond_pairs')
@@ -343,22 +384,20 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 st.write("**Sequences**")
                 st.text(f"Target: {row['target_seq']}")
                 st.text(f"Binder: {row['binder_seq']}")
+
+                #st.write("**Contacts (2Å)**")
+               # st.text(format_pairs(row['pairs_2A']))
+                st.write("------------------------------------------------------------------")
                 st.write("**Contacts (3Å)**")
                 st.text(format_pairs(row['pairs_3A']))
+                st.write("------------------------------------------------------------------")
                 st.write("**Contacts (4Å)**")
                 st.text(format_pairs(row['pairs_4A']))
+                st.write("------------------------------------------------------------------")
                 st.write("**H-bond-like pairs**")
                 st.text(format_pairs(row['hbond_pairs']))
 else:
     st.info("Please upload PDB files and a CSV to start analysis.")
     blankk = st.header("")
     st.markdown("#### Before starting, it is better to download and read the tutorial")
-    file_path = "help.txt"
-    with open(file_path, "r") as ff:
-        txt_content = ff.read()
-    st.download_button(
-        label="Download HELP File",
-        data=txt_content,
-        file_name="help.txt",
-        mime="text/plain"
-    )
+
