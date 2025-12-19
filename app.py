@@ -16,13 +16,9 @@ try:
 except ImportError:
     py3dmol_available = False
 
-##########
-
-########
-
 from bindcraft_analysis_pipeline import analyze_design
-
-st.set_page_config(page_title="BindCraft Output Analysis", layout="wide")
+from helper import *
+st.set_page_config(page_title="BindCraft Analysis", layout="wide")
 st.title("BindCraft Output Analysis (BOA) Web Application")
 
 def format_pairs(pairs):
@@ -42,94 +38,8 @@ if 'df_rank' not in st.session_state:
 if 'pdb_map' not in st.session_state:
     st.session_state.pdb_map = {}
 
-############# HELPER FUNCTIONS #############
 
-def extract_contact_residues(pairs):
-    """Extract unique residue numbers from a list of contact pairs [( (A,res1),(B,res2) ), ... ]"""
-    if not pairs or pairs == "nan":
-        return []
-    residues = set()
-    try:
-        for (a_chain, a_res), (b_chain, b_res) in pairs:
-            residues.add((a_chain, int(a_res)))
-            residues.add((b_chain, int(b_res)))
-    except Exception:
-        return []
-    return list(residues)
-
-def parse_pairs(raw_pairs, target_chain='A', binder_chain='B'):
-    """
-    Parse BindCraft style contact pairs.
-    Example input:
-    [((75,'ARG'), (28,'PHE')), ((78,'THR'), (35,'TRP'))]
-    Returns:
-       [('A',75), ('B',28), ('A',78), ('B',35)]
-    """
-    import ast
-
-    if raw_pairs is None:
-        return []
-
-    # Convert string → Python list
-    if isinstance(raw_pairs, str):
-        try:
-            pairs = ast.literal_eval(raw_pairs)
-        except Exception:
-            return []
-    else:
-        pairs = raw_pairs
-
-    residues = set()
-
-    #[((75,'ARG'), (28,'PHE')), ((78,'THR'), (35,'TRP'))]
-    for left, right in pairs:
-        try:
-            # left = (75, 'ARG') → residue number = left[0]
-            res_target = int(left[0])
-            residues.add((target_chain, res_target))
-
-            # right = (28, 'PHE') → residue number = right[0]
-            res_binder = int(right[0])
-            residues.add((binder_chain, res_binder))
-
-        except Exception:
-            continue
-
-    return list(residues)
-
-import re
-
-def extract_design_id(pdb_filename):
-
-    """
-    Works for:
-    - b_SLOG_l50_s95426_mpnn9_model2.pdb
-    - 5_b_SLOG_l50_s95426_mpnn9_model2.pdb
-    - 12_b_SLOG_l50_s95426_mpnn9_model1.pdb
-    """
-    name = os.path.splitext(os.path.basename(pdb_filename))[0]
-
-    # remove _modelX suffix
-    #name = re.sub(r'_model\d+$', '', name)
-    name = "_".join(name.split("_")[:-1])
-
-    # remove leading rank (digits + underscore)
-    name = re.sub(r'^\d+_', '', name)
-
-    return name
-
-
-#######################
-
-def highlight_residues(view, residue_list, sphere=False, cartoon_color='red', sphere_radius=1.2):
-    """Highlight residues on the 3D structure as cartoon only."""
-    for chain, resi in residue_list:
-        try:
-            view.addStyle({'chain': chain, 'resi': str(resi)}, {'cartoon': {'color': cartoon_color}})
-        except Exception:
-            continue
-
-############# SIDEBAR SETTINGS #############
+################################### SIDEBAR SETTINGS ##########################
 st.sidebar.header("Settings")
 target_chain = st.sidebar.text_input("Target Chain Letter", value="A")
 binder_chain = st.sidebar.text_input("Binder Chain Letter", value="B")
@@ -149,8 +59,10 @@ st.sidebar.download_button(
 )
 mj = st.sidebar.header("App created by MJ Shadfar")
 st.sidebar.caption("BOA v1.2.1")
+st.sidebar.caption("")
+st.sidebar.caption("The last modify : 19 December 2025")
 
-############# FILE UPLOAD & ANALYSIS #############
+############################# FILE UPLOAD & ANALYSIS ########################
 if not st.session_state.analysis_done:
     st.subheader("Upload Files")
     pdb_files = st.file_uploader("Upload PDB files", type=["pdb", "cif"], accept_multiple_files=True)
@@ -233,9 +145,10 @@ if not st.session_state.analysis_done:
             st.session_state.analysis_done = True
             st.rerun()
 
-############# AFTER ANALYSIS #############
+############################ AFTER ANALYSIS ####################################
+
 if st.session_state.analysis_done and st.session_state.df_out is not None:
-    tab1, tab2, tab3 = st.tabs(["Summary", "Visualizations", "Details"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Summary", "Visualizations", "Details", "Filters"])
 
     with tab1:
         st.subheader("Analysis Summary")
@@ -396,6 +309,13 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 st.write("------------------------------------------------------------------")
                 st.write("**H-bond-like pairs**")
                 st.text(format_pairs(row['hbond_pairs']))
+
+    with tab4:
+        st.subheader("Filter your designs!")
+        
+
+
+
 else:
     st.info("Please upload PDB files and a CSV to start analysis.")
     blankk = st.header("")
