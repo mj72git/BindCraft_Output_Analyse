@@ -1,4 +1,4 @@
-BOA
+BOA 1.2.1
 
 It is a Streamlit-based web application for analyzing BindCraft output, exploring interface metrics, and visualizing 3D protein structures.
 
