@@ -148,7 +148,7 @@ if not st.session_state.analysis_done:
 ############################ AFTER ANALYSIS ####################################
 
 if st.session_state.analysis_done and st.session_state.df_out is not None:
-    tab1, tab2, tab3, tab4 = st.tabs(["Summary", "Visualizations", "Details", "Filters"])
+    tab1, tab2, tab3 = st.tabs(["Summary", "Visualizations", "Details"])
 
     with tab1:
         st.subheader("Analysis Summary")
@@ -309,11 +309,6 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 st.write("------------------------------------------------------------------")
                 st.write("**H-bond-like pairs**")
                 st.text(format_pairs(row['hbond_pairs']))
-
-    with tab4:
-        st.subheader("Filter your designs!")
-        
-
 
 
 else:
