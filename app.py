@@ -58,9 +58,10 @@ st.sidebar.download_button(
     mime="text/plain"
 )
 mj = st.sidebar.header("App created by MJ Shadfar")
-st.sidebar.caption("BOA v1.2.1")
+st.sidebar.write(" [Github Repository](https://github.com/mj72git/BindCraft_Output_Analyse)")
+st.sidebar.caption("BOA v1.3.0")
 st.sidebar.caption("")
-st.sidebar.caption("The last modify : 19 December 2025")
+st.sidebar.caption("The last modify : 29 December 2025")
 
 ############################# FILE UPLOAD & ANALYSIS ########################
 if not st.session_state.analysis_done:
@@ -148,7 +149,7 @@ if not st.session_state.analysis_done:
 ############################ AFTER ANALYSIS ####################################
 
 if st.session_state.analysis_done and st.session_state.df_out is not None:
-    tab1, tab2, tab3 = st.tabs(["Summary", "Visualizations", "Details"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Summary", "Visualizations", "Details", "Filters"])
 
     with tab1:
         st.subheader("Analysis Summary")
@@ -168,12 +169,6 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
         st.download_button("Download Summary CSV", st.session_state.df_out.to_csv(index=False), "bindcraft_analysis_summary.csv")
         st.download_button("Download Ranked CSV", st.session_state.df_rank.to_csv(index=False), "bindcraft_ranked.csv")
 
-        if st.button("Reset"):
-            st.session_state.df_out = None
-            st.session_state.df_rank = None
-            st.session_state.pdb_map = {}
-            st.session_state.analysis_done = False
-            st.rerun()
 
     with tab2:
         st.subheader("Visualizations")
@@ -290,6 +285,7 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 view.zoomTo()
                 components.html(view._make_html(), height=500, width=900)
 
+
     with tab3:
         st.subheader("Per-Design Details")
         for _, row in st.session_state.df_out.iterrows():
@@ -311,8 +307,73 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 st.text(format_pairs(row['hbond_pairs']))
 
 
+    with tab4:
+        st.subheader("Filter your designs")
+        col1, col2 = st.columns([1,2])
+        with col1:
+
+            st.markdown("##### Designs Filtered by Selected Metric(s)")
+            filters = ['Average_pLDDT', 'Average_i_pLDDT', 'Average_Binder_pLDDT','Average_pTM', 'Average_i_pTM', 'Average_i_pAE',
+                        'Average_pAE', 'n_contacts_3A', 'n_contacts_4A', 'n_target_interface_residues',
+                       'n_binder_interface_residues', 'Average_dG' ]
+            #cutoffs = [0.9, 0.8, 0.7, 0.5, 0.7, 0.2, 0.13, -70]
+            #aa = []
+
+            #final_filters = dict(zip(filters,cutoffs))
+            df_final = st.session_state.df_out.copy()
+
+            for filter in filters:
+                show_filter = st.checkbox(filter,value = False)
+                df_final[filter] = pd.to_numeric(df_final[filter], errors='coerce')
+                if show_filter:
+                    if ('pLDDT' in filter) or ('pTM' in filter):
+                        cutoff = st.slider("choose your cutoff (%) : ", 0, 100, 70, key=f"slider_{filter}")
+                        cutoff = cutoff / 100
+                        #aa.append(cutoff)
+                        #df_final = df_final[df_final[filter] >= final_filters[filter]]
+                        #df_final = df_final[df_final[filter] >= aa[i]]
+                        df_final = df_final[df_final[filter] >= cutoff]
+
+                    elif ('pAE' in filter):
+                        cutoff = st.slider("Choose your cutoff (%)  : " , 0, 100, 20, key=f"slider_{filter}")
+                        cutoff = cutoff / 100
+                        #aa.append(cutoff)
+                        df_final = df_final[df_final[filter] <= cutoff]
+                        #df_final = df_final[df_final[filter] <= aa[i]]
+                        #df_final = df_final[df_final[filter] <= final_filters[filter]]
+
+
+                    elif ('contacts' in filter):
+                        cutoff = st.slider("Choose your cutoff   : ", 0, 100, 20, key=f"slider_{filter}")
+                        df_final = df_final[df_final[filter] >= cutoff]
+
+                    elif ('interface_residues' in filter):
+                        cutoff = st.slider("Choose your cutoff   : ", 0, 100, 10, key=f"slider_{filter}")
+                        df_final = df_final[df_final[filter] >= cutoff]
+
+                    elif 'dG' in filter:
+                        #df_final = df_final[df_final[filter] <= final_filters[filter]]
+                        dg_cutoff = st.number_input("dG Cutoff ", value=-10)
+                        #aa.append(dg_cutoff)
+                        #df_final = df_final[df_final[filter] <= aa[i]]
+                        df_final = df_final[df_final[filter] <= dg_cutoff]
+
+        with col2:
+            st.markdown("##### Recommended designs based on filters: ")
+            for c in ['pairs_3A', 'pairs_4A', 'hbond_pairs']:
+                if c in df_final.columns:
+                    df_final[c] = df_final[c].astype(str)
+            st.dataframe(df_final)
+    if st.sidebar.button(" RESET "):
+        st.session_state.df_out = None
+        st.session_state.df_rank = None
+        st.session_state.pdb_map = {}
+        st.session_state.analysis_done = False
+        st.rerun()
+
+
 else:
-    st.info("Please upload PDB files and a CSV to start analysis.")
+    st.info("Please upload PDB files and a CSV to start analysis. ")
     blankk = st.header("")
-    st.markdown("#### Before starting, it is better to download and read the tutorial")
+    st.markdown("#### Before starting, it is recommended to download and read the tutorial")
 
