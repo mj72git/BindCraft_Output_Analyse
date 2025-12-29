@@ -19,6 +19,7 @@ https://bindcraftoutputanalyse-ednrdmyx97eon4hlfkjatb.streamlit.app/
 ### Generating BindCraft Analysis Output
 To utilize this analysis app, you first need to generate output from BindCraft. The original BindCraft software repository can be found here: https://github.com/martinpacesa/BindCraft.
 
+(Includes a RESET button in the sidebar to clear all information.)
 
 ## 🚀 Features
 
@@ -44,6 +45,9 @@ For each design, you can inspect:
 - Residue–residue contact pairs (3 Å and 4 Å)  
 - H-bond–like interactions  
 - Interface residue counts   
+
+### ✅ 4. Filters Tab
+- you can choose your best designs based on the BindCraft metrics. >> added in v1.3.0
 
 ---
 
