@@ -7,7 +7,6 @@ import numpy as np
 import plotly.express as px
 
 
-
 ############# HELPER FUNCTIONS #############
 
 def extract_contact_residues(pairs):
@@ -94,3 +93,61 @@ def highlight_residues(view, residue_list, sphere=False, cartoon_color='red', sp
             view.addStyle({'chain': chain, 'resi': str(resi)}, {'cartoon': {'color': cartoon_color}})
         except Exception:
             continue
+#########################
+
+from MDAnalysis.lib.distances import distance_array
+
+def residue_pair_distance(pdb_text, chain1, res1, chain2, res2):
+    import MDAnalysis as mda
+    import tempfile, os
+
+    # Write pdb to temp file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdb") as f:
+        f.write(pdb_text.encode())
+        fname = f.name
+
+    u = mda.Universe(fname)
+
+    try:
+        a1 = u.select_atoms(f"chainID {chain1} and resid {res1}")
+        a2 = u.select_atoms(f"chainID {chain2} and resid {res2}")
+        if len(a1)==0 or len(a2)==0:
+            return None
+        d = distance_array(a1.positions, a2.positions).min()
+        return round(float(d), 2)
+    finally:
+        os.remove(fname)
+
+
+########
+def format_pairs_with_distance(pairs, pdb_text, target_chain, binder_chain, add_target_res_offset):
+    if pairs is None:
+        return "None"
+
+    if isinstance(pairs, str):
+        try:
+            pairs = eval(pairs)
+        except:
+            return pairs
+
+    out = []
+    for (r1, r2) in pairs:
+        # r1 = (resid, resname)
+        # r2 = (resid, resname)
+        res1, name1 = r1
+        res1 -= add_target_res_offset
+        res2, name2 = r2
+
+        d = residue_pair_distance(
+            pdb_text,
+            target_chain, res1,
+            binder_chain, res2
+        )
+
+        if d is None:
+            out.append(f"{target_chain}{res1 + add_target_res_offset}({name1})   –   {binder_chain}{res2}({name2})   :   NA")
+        else:
+            out.append(f"{target_chain}{res1 + add_target_res_offset}({name1})   –   {binder_chain}{res2}({name2})   :   {d} Å")
+
+    return "\n".join(out)
+
