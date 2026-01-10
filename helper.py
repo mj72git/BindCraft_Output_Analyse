@@ -137,7 +137,7 @@ def format_pairs_with_distance(pairs, pdb_text, target_chain, binder_chain, add_
         # r1 = (resid, resname)
         # r2 = (resid, resname)
         res1, name1 = r1
-        res1 -= add_target_res_offset
+        res1 = res1 - add_target_res_offset
         res2, name2 = r2
 
         d = residue_pair_distance(
