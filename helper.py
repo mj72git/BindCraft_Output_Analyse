@@ -5,6 +5,8 @@ import tempfile
 import os
 import numpy as np
 import plotly.express as px
+import MDAnalysis as mda
+import tempfile, os
 
 
 ############# HELPER FUNCTIONS #############
