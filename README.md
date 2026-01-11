@@ -18,7 +18,7 @@ https://bindcraftoutputanalyse-ednrdmyx97eon4hlfkjatb.streamlit.app/
 
 ### Generating BindCraft Analysis Output
 To utilize this analysis app, you first need to generate output from BindCraft. The original BindCraft software repository can be found here: https://github.com/martinpacesa/BindCraft.
-
+ 
 (Includes a RESET button in the sidebar to clear all information.)
 
 ## 🚀 Features
