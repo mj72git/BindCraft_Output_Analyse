@@ -296,12 +296,12 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                         for chain, resi in highlight_target:
                             view.addStyle(
                                 {'chain': chain, 'resi': resi},
-                                {'sphere': {'colorscheme': 'spectrum','scale':0.7}})
+                                {'sphere': {'colorscheme': 'spectrum','scale':0.8}})
 
                         for chain, resi in highlight_binder:
                             view.addStyle(
                                 {'chain': chain, 'resi': resi},
-                                {'sphere': {'colorscheme': 'greenCarbon','scale':0.7}})
+                                {'sphere': {'colorscheme': 'greenCarbon','scale':0.8}})
 
                 view.zoomTo()
                 
