@@ -101,6 +101,10 @@ def count_clashes(universe, cutoff=2.2):
         # skip same residue
         if (aatom.segid, aatom.resnum, aatom.resname) == (batom.segid, batom.resnum, batom.resname):
             continue
+        # NEW: skip immediate neighbors in the same chain
+        if aatom.segid == batom.segid:
+            if abs(aatom.resid - batom.resid) <= 1:
+                continue
         clashes += 1
     return clashes
 
