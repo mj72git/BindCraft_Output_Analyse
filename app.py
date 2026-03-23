@@ -124,15 +124,16 @@ if not st.session_state.analysis_done:
                     'n_contacts_4A': r.get('n_contacts_4A'),
                     'n_target_interface_residues': r.get('n_target_interface_residues'),
                     'n_binder_interface_residues': r.get('n_binder_interface_residues'),
-                    'hbond_like_count': r.get('hbond_like_count'),
-                    'clash_count': r.get('clash_count'),
-                    'dsasa': r.get('dsasa'),
+                   # 'hbond_like_count': r.get('hbond_like_count'),
+                   # 'clash_count': r.get('clash_count'),
+                   # 'dsasa': r.get('dsasa'),
                     'target_seq': r.get('target_seq'),
                     'binder_seq': r.get('binder_seq'),
 
                     'pairs_3A': r.get('pairs_3A'),
                     'pairs_4A': r.get('pairs_4A'),
-                    'hbond_pairs': r.get('hbond_pairs')
+                  #  'hbond_pairs': r.get('hbond_pairs')
+                    'hypho' : r.get('hypho')
                 })
                 results.append(record)
                 progress.progress((i+1)/len(pdb_files))
@@ -328,8 +329,8 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 st.text(format_pairs(row['pairs_4A']))
                 #st.text(format_pairs_with_distance(row['pairs_4A'], pdb_text, target_chain, binder_chain, add_target_res_offset))
                 st.write("------------------------------------------------------------------")
-                st.write("**H-bond-like pairs**")
-                st.text(format_pairs(row['hbond_pairs']))
+                st.write("**hydrophobic pathes**")
+                st.text(format_pairs(row['hypho']))
 
 
     with tab4:
