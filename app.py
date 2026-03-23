@@ -155,17 +155,21 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
     with tab1:
         st.subheader("Analysis Summary")
         df_display = st.session_state.df_out.copy()
-        for col in ['pairs_3A', 'pairs_4A', 'hbond_pairs', 'hypho']:
+        for col in ['pairs_3A', 'pairs_4A', 'hypho']:
             if col in df_display.columns:
                 df_display[col] = df_display[col].apply(lambda x: str(x))
         st.dataframe(df_display)
 
         st.subheader("Ranked Designs")
         df_rank_display = st.session_state.df_rank.copy()
-        for col in ['pairs_3A', 'pairs_4A', 'hbond_pairs','hypho']:
+        for col in ['pairs_3A', 'pairs_4A', 'hypho']:
             if col in df_rank_display.columns:
                 df_rank_display[col] = df_rank_display[col].apply(lambda x: str(x))
         st.dataframe(df_rank_display)
+
+        
+
+      
 
         st.download_button("Download Summary CSV", st.session_state.df_out.to_csv(index=False), "bindcraft_analysis_summary.csv")
         st.download_button("Download Ranked CSV", st.session_state.df_rank.to_csv(index=False), "bindcraft_ranked.csv")
@@ -387,7 +391,7 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
 
         with col2:
             st.markdown("##### Recommended designs based on filters: ")
-            for c in ['pairs_3A', 'pairs_4A', 'hbond_pairs']:
+            for c in ['pairs_3A', 'pairs_4A', 'hypho']:
                 if c in df_final.columns:
                     df_final[c] = df_final[c].astype(str)
             st.dataframe(df_final)
