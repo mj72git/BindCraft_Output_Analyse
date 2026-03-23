@@ -204,7 +204,7 @@ def analyze_design(pdb_path, target_chain='A', binder_chain='B', add_target_res_
 
     # Contacts
    # 3.0A Contacts and Hydrophobic Patches
-    pairs3, hypho_list = residue_contacts(target, binder, cutoff=3.0, add_target_res_offset=add_target_res_offset)
+    pairs3, hypho = residue_contacts(target, binder, cutoff=3.0, add_target_res_offset=add_target_res_offset)
     
     # 4.0A Contacts
     pairs4, _ = residue_contacts(target, binder, cutoff=4.0, add_target_res_offset=add_target_res_offset)
