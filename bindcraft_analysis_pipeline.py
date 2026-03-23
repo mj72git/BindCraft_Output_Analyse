@@ -45,21 +45,65 @@ def parse_freesasa_total(txt_path):
 
 # ----------------------------- Analysis helpers -----------------------------
 
+#def residue_contacts(target_atoms, binder_atoms, cutoff=4.0, add_target_res_offset=0):
+   # """Return sorted list of contacting residue pairs (target_resid, target_resname), (binder_resid, binder_resname).
+   # target_atoms and binder_atoms are MDAnalysis AtomGroup (non-hydrogen recommended).
+ #   add_target_res_offset: if your PDB target residue numbering was shifted and you want to add an offset (e.g. +23).
+  #  """
+  #  if len(target_atoms) == 0 or len(binder_atoms) == 0:
+    #    return []
+   # d = distances.distance_array(target_atoms.positions, binder_atoms.positions)
+    #i, j = np.where(d <= cutoff)
+    #pairs = set()
+    #for a, b in zip(i, j):
+        #resA = (int(target_atoms[a].resid + add_target_res_offset), target_atoms[a].resname)
+       # resB = (int(binder_atoms[b].resid), binder_atoms[b].resname)
+       # pairs.add((resA, resB))
+    #return sorted(pairs, key=lambda x: (x[0][0], x[1][0]))
+
 def residue_contacts(target_atoms, binder_atoms, cutoff=4.0, add_target_res_offset=0):
-    """Return sorted list of contacting residue pairs (target_resid, target_resname), (binder_resid, binder_resname).
-    target_atoms and binder_atoms are MDAnalysis AtomGroup (non-hydrogen recommended).
-    add_target_res_offset: if your PDB target residue numbering was shifted and you want to add an offset (e.g. +23).
     """
+    Returns:
+    - contacts: sorted list of ((resA_id, resA_name), (resB_id, resB_name))
+    - hydrophobic_patches: list of contacts specifically between two hydrophobic residues
+    """
+    # 1. Define Hydrophobic Lookup Table
+    HYDROPHOBIC_AAS = {'VAL', 'ILE', 'LEU', 'PHE', 'MET', 'TRP', 'ALA', 'PRO'}
+
     if len(target_atoms) == 0 or len(binder_atoms) == 0:
-        return []
+        return [], []
+
+    # 2. Calculate Distances
     d = distances.distance_array(target_atoms.positions, binder_atoms.positions)
     i, j = np.where(d <= cutoff)
+    
     pairs = set()
+    hydrophobic_patches = []
+
+    # 3. Analyze Contacts
     for a, b in zip(i, j):
-        resA = (int(target_atoms[a].resid + add_target_res_offset), target_atoms[a].resname)
-        resB = (int(binder_atoms[b].resid), binder_atoms[b].resname)
-        pairs.add((resA, resB))
-    return sorted(pairs, key=lambda x: (x[0][0], x[1][0]))
+        # Extract residue info
+        resA_id = int(target_atoms[a].resid + add_target_res_offset)
+        resA_name = target_atoms[a].resname
+        
+        resB_id = int(binder_atoms[b].resid)
+        resB_name = binder_atoms[b].resname
+        
+        resA_info = (resA_id, resA_name)
+        resB_info = (resB_id, resB_name)
+        
+        # Add to unique set of pairs
+        if (resA_info, resB_info) not in pairs:
+            pairs.add((resA_info, resB_info))
+            
+            # 4. Identify Stabilizing Patches
+            if resA_name in HYDROPHOBIC_AAS and resB_name in HYDROPHOBIC_AAS:
+                hydrophobic_patches.append((resA_info, resB_info))
+
+    sorted_contacts = sorted(list(pairs), key=lambda x: (x[0][0], x[1][0]))
+    sorted_patches = sorted(hydrophobic_patches, key=lambda x: (x[0][0], x[1][0]))
+
+    return sorted_contacts, sorted_patches
 
 
 def count_hbond_like(target_atoms, binder_atoms, cutoff=3.5):
