@@ -203,12 +203,14 @@ def analyze_design(pdb_path, target_chain='A', binder_chain='B', add_target_res_
     out['binder_atoms'] = len(binder)
 
     # Contacts
-    pairs3 = residue_contacts(target, binder, cutoff=3.0, add_target_res_offset=add_target_res_offset)
-    pairs4 = residue_contacts(target, binder, cutoff=4.0, add_target_res_offset=add_target_res_offset)
+    pairs3 = residue_contacts(target, binder, cutoff=3.0, add_target_res_offset=add_target_res_offset)[0]
+    pairs4 = residue_contacts(target, binder, cutoff=4.0, add_target_res_offset=add_target_res_offset)[0]
+    hypho = residue_contacts(target, binder, cutoff=3.0, add_target_res_offset=add_target_res_offset)[1]
     out['n_contacts_3A'] = len(pairs3)
     out['n_contacts_4A'] = len(pairs4)
     out['pairs_3A'] = pairs3
     out['pairs_4A'] = pairs4
+    out['hypho'] = hypho
 
     # Unique contacting residues
     target_res_set = set([p[0][0] for p in pairs4])
