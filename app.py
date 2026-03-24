@@ -143,7 +143,7 @@ if not st.session_state.analysis_done:
             for col in ['Average_i_pTM','Average_dSASA','Average_pLDDT']:
                 if col not in df_rank.columns:
                     df_rank[col] = np.nan
-            st.session_state.df_rank = df_rank.sort_values(by='Average_i_pTM','Average_dSASA','Average_pLDDT'], ascending=[False, False, False])
+            st.session_state.df_rank = df_rank.sort_values(by=['Average_i_pTM','Average_dSASA','Average_pLDDT'], ascending=[False, False, False])
             st.session_state.analysis_done = True
             st.rerun()
 
