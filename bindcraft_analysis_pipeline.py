@@ -320,7 +320,7 @@ def main():
         record = {}
         record.update({'design_id': base})
         # include selected CSV columns if present
-        for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pAE','Average_i_pTM','Average_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
+        for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pTM','Average_pAE','Average_i_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
             record[col] = matched_row.get(col, np.nan)
         # include structural outputs
         record['n_contacts_3A'] = r.get('n_contacts_3A')
