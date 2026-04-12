@@ -116,7 +116,7 @@ if not st.session_state.analysis_done:
                 st.session_state.pdb_map[base] = pdb_text
 
                 record = {'design_id': base}
-                for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pAE','Average_i_pTM','Average_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
+                for col in ['Average_pLDDT','Average_i_pLDDT','Average_pTM','Average_i_pTM','Average_pAE','Average_i_pAE','Average_dG','Average_dSASA','Average_Binder_pLDDT','Average_n_InterfaceResidues']:
                     record[col] = matched_row.get(col, np.nan)
                 record.update({
 
