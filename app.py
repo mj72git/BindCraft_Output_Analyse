@@ -225,7 +225,7 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 row = df[df['design_id'] == selected_design].iloc[0]
 
                 # Handle raw_pairs
-                raw_pairs = row.get('pairs_4A')
+                raw_pairs = row.get('pairs_3A')
                 if isinstance(raw_pairs, str) and raw_pairs.strip().lower() in ["nan", "", "none"]:
                     raw_pairs = None
 
