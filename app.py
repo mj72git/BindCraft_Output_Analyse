@@ -312,16 +312,22 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                             )
 
                     if show_sphere:
+                        target_sphere_color = st.selectbox("Target Sphere Color", ["limegreenCarbon", "redCarbon", "orangeCarbon", "magentaCarbon", "yellowCarbon", "cyanCarbon"],
+                                            index=0, key=f"tcolor_{selected_design}")
+                        binder_sphere_color = st.selectbox("binder Sphere Color", ["deepskyblueCarbon", "redCarbon", "orangeCarbon", "magentaCarbon", "yellowCarbon", "cyanCarbon"],
+                                            index=0, key=f"tcolor_{selected_design}")
                         for chain, resi in highlight_target:
                             view.addStyle(
                                 {'chain': chain, 'resi': resi},
-                                {'sphere': {'colorscheme': 'greenCarbon','scale':0.8}})
+                                {'sphere': {'colorscheme': target_sphere_color,'scale':0.8}})
+                                #{'sphere': {'colorscheme': 'greenCarbon','scale':0.8}})
                                 #{'sphere': {'colorscheme': 'spectrum','scale':0.8}})
 
                         for chain, resi in highlight_binder:
                             view.addStyle(
                                 {'chain': chain, 'resi': resi},
-                                {'sphere': {'colorscheme': 'deepskyblueCarbon','scale':0.8}})
+                                {'sphere': {'colorscheme': binder_sphere_color,'scale':0.8}})
+                                #{'sphere': {'colorscheme': 'deepskyblueCarbon','scale':0.8}})
                                 #{'sphere': {'colorscheme': 'greenCarbon','scale':0.8}})
 
                 view.zoomTo()
