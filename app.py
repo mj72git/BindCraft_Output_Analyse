@@ -312,9 +312,9 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                             )
 
                     if show_sphere:
-                        target_sphere_color = st.selectbox("Target Sphere Color", ["limegreenCarbon", "redCarbon", "orangeCarbon", "magentaCarbon", "yellowCarbon", "cyanCarbon"],
+                        target_sphere_color = st.selectbox("Target Sphere Color", ["limegreen", "red", "orange", "magenta", "yellow", "cyan"],
                                             index=0, key=f"tcolor_{selected_design}")
-                        binder_sphere_color = st.selectbox("binder Sphere Color", ["deepskyblueCarbon", "redCarbon", "orangeCarbon", "magentaCarbon", "yellowCarbon", "cyanCarbon"],
+                        binder_sphere_color = st.selectbox("binder Sphere Color", ["deepskyblue", "red", "orange", "magenta", "yellow", "cyan"],
                                             index=0, key=f"tcolor_{selected_design}")
                         for chain, resi in highlight_target:
                             view.addStyle(
