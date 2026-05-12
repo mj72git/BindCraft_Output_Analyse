@@ -182,8 +182,20 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
         df = st.session_state.df_out
 
         # -------------------------------
-        # BAR PLOT (4Å contacts)
+        # BAR PLOT (3Å , 4Å contacts)
         # -------------------------------
+        if df is not None and df.shape[0] > 0:
+            fig_contacts = px.bar(
+                df,
+                x='design_id',
+                y='n_contacts_3A',
+                title='Number of Contacts (3Å)'
+            )
+            st.plotly_chart(fig_contacts, use_container_width=True)
+        else:
+            st.info("No data to plot. Please run analysis first.")
+
+        st.write("------------------------------------------------------------------------------------------")
         if df is not None and df.shape[0] > 0:
             fig_contacts = px.bar(
                 df,
@@ -194,6 +206,8 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
             st.plotly_chart(fig_contacts, use_container_width=True)
         else:
             st.info("No data to plot. Please run analysis first.")
+
+        
 
         # -------------------------------
         # 3D STRUCTURE VIEWER
