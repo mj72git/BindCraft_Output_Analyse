@@ -271,7 +271,7 @@ if st.session_state.analysis_done and st.session_state.df_out is not None:
                 target_color = st.selectbox("Target Color", ["limegreen", "red", "orange", "magenta", "yellow", "cyan"],
                                             index=0, key=f"tcolor_{selected_design}")
                 binder_color = st.selectbox("Binder Color",
-                                            ["deepskyblue", "red", "orange", "magenta", "yellow", "cyan"], index=2,
+                                            ["orange", "red", "deepskyblue", "magenta", "yellow", "cyan"], index=0,
                                             key=f"bcolor_{selected_design}")
 
                 # Create viewer
