@@ -215,8 +215,8 @@ def analyze_design(pdb_path, target_chain='A', binder_chain='B', add_target_res_
     out['hypho'] = hypho_list
 
     # Unique contacting residues
-    target_res_set = set([p[0][0] for p in pairs4])
-    binder_res_set = set([p[1][0] for p in pairs4])
+    target_res_set = set([p[0][0] for p in pairs3])
+    binder_res_set = set([p[1][0] for p in pairs3])
     out['n_target_interface_residues'] = len(target_res_set)
     out['n_binder_interface_residues'] = len(binder_res_set)
 
