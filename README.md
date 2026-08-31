@@ -5,8 +5,7 @@ This is a Streamlit-based web application for analyzing **BindCraft** output, ex
 
 This tool helps you interpret the results generated after running BindCraft, including the Accepted PDB files and the `final_design_stats.csv` file.
 
-For more information about the output parameters of BindCraft, this link is so useful: 
-https://yarrowmadrona.medium.com/denovo-protein-binder-design-using-bindcraft-part-ii-you-have-your-data-now-what-db9288e782b3
+For more information about the output parameters of BindCraft, the third Ref ([3]) is really helpful.
 
 
 ---
@@ -93,3 +92,6 @@ cd BindCraft_Output_Analyse-main
 [1] Pacesa, M. (2024). BindCraft: one-shot design of functional protein binders. bioRxiv. [https://www.biorxiv.org/content/10.1101/2024.09.30.615802v1]
 
 [2] A-Yarow github page: https://github.com/A-Yarrow
+
+[3] https://yarrowmadrona.medium.com/denovo-protein-binder-design-using-bindcraft-part-ii-you-have-your-data-now-what-db9288e782b3
+
