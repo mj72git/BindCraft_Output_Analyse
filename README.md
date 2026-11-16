@@ -1,7 +1,7 @@
 
-# BindCraft Output Analysis Web App (BOA)
+# BindCraft Output Analyser Web App (BOA)
 
-This is a Streamlit-based web application for analyzing **BindCraft** output, exploring **interface metrics**, and visualizing **3D protein structures**.
+This is a Streamlit-based web application for analysing **BindCraft** output, exploring **interface metrics**, and visualising **3D protein structures**.
 
 This tool helps you interpret the results generated after running BindCraft, including the Accepted PDB files and the `final_design_stats.csv` file.
 
@@ -11,19 +11,19 @@ For more information about the output parameters of BindCraft, the third Ref ([3
 ---
 
 ## Getting Started
-### Accessing the bindcraft-output-analysis web app
+### Accessing the bindcraft-output-analyser web app
 This application is hosted on Streamlit Cloud, providing easy access without any local installation required. The link :
 https://bindcraftoutputanalyse-ednrdmyx97eon4hlfkjatb.streamlit.app/
 
 ### Generating BindCraft Analysis Output
-To utilize this analysis app, you first need to generate output from BindCraft. The original BindCraft software repository can be found here: https://github.com/martinpacesa/BindCraft.
+To utilise this analysis app, you first need to generate output from BindCraft. The original BindCraft software repository can be found here: https://github.com/martinpacesa/BindCraft.
  
 (Includes a RESET button in the sidebar to clear all information.)
 
 ## 🚀 Features
 
 ### ✅ 1. Summary Tab
-- Displays all analyzed results in a single interactive table  
+- Displays all analysed results in a single interactive table  
 - Combines your original CSV with additional metrics computed by MDAnalysis  
 - Provides buttons to download:
   - Updated summary CSV  
@@ -31,9 +31,9 @@ To utilize this analysis app, you first need to generate output from BindCraft. 
 
 ---
 
-### ✅ 2. Visualization Tab
+### ✅ 2. Visualisation Tab
 - Interactive **3D structure viewer** using *py3Dmol*
-- Customizable chain coloring  
+- Customisable chain colouring  
 - Counts and plots the number of **4 Å contacts** between binder and target  
 
 ---

@@ -77,7 +77,6 @@ def extract_design_id(pdb_filename):
     name = os.path.splitext(os.path.basename(pdb_filename))[0]
 
     # remove _modelX suffix
-    #name = re.sub(r'_model\d+$', '', name)
     name = "_".join(name.split("_")[:-1])
 
     # remove leading rank (digits + underscore)
