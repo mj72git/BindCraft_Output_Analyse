@@ -42,8 +42,6 @@ To utilise this analysis app, you first need to generate output from BindCraft. 
 For each design, you can inspect:
 - Target and binder sequences  
 - Residue–residue contact pairs (3 Å and 4 Å) 
-- H-bond–like interactions  
-- Interface residue counts   
 
 ### ✅ 4. Filters Tab
 - you can choose your best designs based on the BindCraft metrics.
